@@ -1,0 +1,267 @@
+/* Genel stil */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f6f8;
+  color: #333;
+}
+
+/* Ana container */
+.home-container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* Kullanıcı bölümü */
+.user-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.user-info p {
+  margin: 5px 0;
+}
+
+.logout-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #c0392b;
+}
+
+/* Arama bölümü */
+.search-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-input {
+  resize: vertical;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.search-btn {
+  padding: 10px;
+  font-size: 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.search-btn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.search-btn:hover:enabled {
+  background-color: #2980b9;
+}
+
+/* AI yanıtı */
+.ai-response {
+  margin-top: 15px;
+  background-color: #ecf0f1;
+  padding: 12px;
+  border-left: 5px solid #3498db;
+  border-radius: 6px;
+}
+
+.response-text {
+  white-space: pre-wrap;
+}
+
+/* Arama sonuçları */
+.results-section {
+  margin-top: 20px;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.file-card {
+  background-color: #fafafa;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.file-card:hover {
+  background-color: #f0f8ff;
+}
+
+.file-info h5 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+}
+
+.download-btn {
+  padding: 8px 12px;
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.download-btn:hover {
+  background-color: #27ae60;
+}
+
+/* Eşleşme bilgisi */
+.match-info {
+  margin-top: 5px;
+}
+
+.match-score {
+  font-weight: bold;
+  color: #27ae60;
+}
+
+.keywords {
+  margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.keyword-tag {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.more-keywords {
+  font-size: 12px;
+  color: #888;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.modal-download-btn {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modal-download-btn:hover {
+  background-color: #27ae60;
+}
+
+.modal-close-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modal-close-btn:hover {
+  background-color: #c0392b;
+}
+
+.file-details p {
+  margin: 5px 0;
+}
+
+.matched-keywords {
+  margin-top: 10px;
+}
+
+.keywords-container {
+  margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.loading {
+  text-align: center;
+  font-size: 18px;
+  padding: 50px;
+}
+
+.user-section {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 100;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.home-container{
+  position: sticky;
+  top: 20;
+  background: white;
+  z-index: 100;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}

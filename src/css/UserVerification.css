@@ -1,0 +1,78 @@
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+  width: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  min-width: vh;
+  background-color: #f9f9f9;
+}
+
+.admin-container h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.message {
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  border: 1px solid #999;
+  background-color: #eef6ff;
+  color: #333;
+  border-radius: 4px;
+}
+
+.user-list {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.onayTablosu {
+  border-collapse: collapse;
+  width: 80%;
+  max-width: 900px;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.onayTablosu th, .onayTablosu td {
+  border: 1px solid #ddd;
+  padding: 12px 15px;
+  text-align: center;
+}
+
+.onayTablosu th {
+  background-color: #007bff;
+  color: white;
+}
+
+.onayTablosu tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Buton stili */
+.approve-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.approve-btn:hover {
+  background-color: #218838;
+}
+
+/* Yükleme veya boş veri durumu ortalama */
+.user-list p {
+  font-size: 18px;
+  color: #666;
+  text-align: center;
+  margin-top: 60px;
+}
