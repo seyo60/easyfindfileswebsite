@@ -51,7 +51,7 @@
   },
   "scripts": {
     "start": "NODE_OPTIONS=--max-old-space-size=4096 REACT_APP_BACKEND_URL=http://localhost:5001 react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true CI=false NODE_OPTIONS=--max-old-space-size=4096 react-scripts build",
+    "build": "cross-env DISABLE_ESLINT_PLUGIN=true CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -75,6 +75,7 @@
     "@typescript-eslint/type-utils": "^5.62.0",
     "@typescript-eslint/utils": "^5.62.0",
     "buffer": "^6.0.3",
+    "cross-env": "^10.0.0",
     "crypto-browserify": "^3.12.1",
     "eslint": "^8.57.1",
     "os-browserify": "^0.3.0",
