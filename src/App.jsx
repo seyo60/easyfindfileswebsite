@@ -13,7 +13,7 @@ import SignInHome from './SignInHome';
 const App = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/SignUp" replace />} />
+      <Route path="/" element={<Navigate to="/SignIn" replace />} />
       <Route path="/SignIn" element={<SignIn />} />
       <Route path="/SignUp" element={<SignUp />} />
       <Route path="/UserVerification" element={<UserVerification />} />
