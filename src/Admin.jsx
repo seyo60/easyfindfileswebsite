@@ -3,7 +3,7 @@ import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase';
 import { collection, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth'; 
 import { useNavigate } from 'react-router-dom';
-import emailjs from 'emailjs-com';
+import emailjs from '@emailjs/browser';
 import SignUp from './SignUp.jsx';
 import './css/Admin.css';
 import Container from 'react-bootstrap/Container';

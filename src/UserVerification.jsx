@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase';
 import { collection, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth'; // onAuthStateChanged'i ekledik
-import emailjs from 'emailjs-com';
+import emailjs from '@emailjs/browser';
 import SignUp from './SignUp.jsx';
 import './css/UserVerification.css';
 import Button from 'react-bootstrap/Button';

@@ -4,6 +4,7 @@
   "type": "module",
   "private": true,
   "dependencies": {
+    "@babel/plugin-transform-class-properties": "^7.27.1",
     "@chakra-ui/react": "^3.24.2",
     "@emailjs/browser": "^4.4.1",
     "@google/generative-ai": "^0.24.1",
@@ -20,7 +21,6 @@
     "bootstrap": "^5.3.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
-    "emailjs-com": "^3.2.0",
     "express": "^5.1.0",
     "firebase": "^12.0.0",
     "https-browserify": "^1.0.0",
@@ -50,14 +50,15 @@
     "xlsx": "^0.18.5",
     "yamljs": "^0.3.0"
   },
-"scripts": {
-  "start": "set NODE_OPTIONS=--max-old-space-size=4096 && set REACT_APP_BACKEND_URL=http://localhost:5001 && react-scripts start",
-  "build": "set NODE_OPTIONS=--max-old-space-size=4096 && set REACT_APP_BACKEND_URL=https://your-production-api-url.com && react-scripts build",
-  "test": "react-scripts test",
-  "eject": "react-scripts eject",
-  "dev": "set NODE_OPTIONS=--max-old-space-size=4096 && react-scripts start",
-  "lint": "eslint src --fix"
-},
+  "scripts": {
+    "start": "set NODE_OPTIONS=--max-old-space-size=4096 && set REACT_APP_BACKEND_URL=http://localhost:5001 && react-scripts start",
+    "build": "set CI=false && set NODE_OPTIONS=--max-old-space-size=4096 && react-scripts build",
+    "build:strict": "set NODE_OPTIONS=--max-old-space-size=4096 && react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "dev": "set NODE_OPTIONS=--max-old-space-size=4096 && react-scripts start",
+    "lint": "eslint src --fix"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -80,6 +81,8 @@
     "@craco/craco": "^7.1.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
+    "eslint": "^8.57.0",
+    "eslint-config-react-app": "^7.0.1",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
