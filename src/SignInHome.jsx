@@ -3,12 +3,9 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase';
 import { useNavigate } from 'react-router-dom';
 import './css/SignInHome.css';
-import { useAuth } from './context/AuthContext.js'; 
-import { doc, getDoc } from 'firebase/firestore';   
 
 
-const SignInHome = () => {
-  const { setCurrentUser, setIsAdmin } = useAuth();
+const SignIn = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,26 +15,20 @@ const SignInHome = () => {
   const signIn = async () => {
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
-      const user = userCredential.user;
-      
-      // AuthContext'i güncelle
-      setCurrentUser(user);
-      
-      // Firestore'dan admin bilgisini çek
-      const userDoc = await getDoc(doc(FIRESTORE_DB, "users", user.uid));
-      if (userDoc.exists()) {
-        setIsAdmin(userDoc.data().isAdmin || false);
-      }
+      const response = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+      console.log(response);
 
-      navigate("/Home");
-      
+      if (verificationCode) {
+        alert("Giriş başarılı, yönlendiriliyorsunuz.");
+        navigate("/Home");
+      }
     } catch (error) {
-      console.error('Giriş hatası:', error);
-      alert(error.message.replace('Firebase: ', ''));
+      console.error(error);
+      alert('Giriş hatası: ' + error.message);
     } finally {
       setLoading(false);
     }
+  };
 
  const ForgetPasswordNavigate = () =>{
     navigate('/ForgetPassword')
@@ -75,5 +66,5 @@ const SignInHome = () => {
     </div>
   );
 };
-}
-export default SignInHome;
+
+export default SignIn;
