@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth'; 
 import { useNavigate } from 'react-router-dom';
 import emailjs from 'emailjs-com';
 import SignUp from './SignUp.jsx';
@@ -16,24 +17,39 @@ const Admin = () => {
     const [pendingUsers, setPendingUsers] = useState([]);
     const [loading, setLoading] = useState(true); 
     const [message, setMessage] = useState('');
+    const [isAdmin, setIsAdmin] = useState(false);
 
-    // *** Korumalı rota mekanizması burasıdır ***
     useEffect(() => {
-        // localStorage'daki 'isAdmin' durumunu kontrol et
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, async (user) => {
+            if (user) {
+                // Kullanıcı oturum açmışsa, Firestore'dan admin durumunu kontrol et
+                const userDocRef = doc(FIRESTORE_DB, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
 
-        // Eğer admin yetkisi yoksa, giriş sayfasına yönlendir
-        if (!isAdmin) {
-            navigate("/AdminLogin");
-        } else {
-            // Admin yetkisi varsa, kullanıcı verilerini çek
-            fetchPendingUsers();
-        }
+                if (userDocSnap.exists() && userDocSnap.data().isAdmin) {
+                    setIsAdmin(true);
+                    fetchPendingUsers();
+                } else {
+                    // Kullanıcı admin değilse giriş sayfasına yönlendir
+                    setIsAdmin(false);
+                    navigate("/AdminLogin");
+                }
+            } else {
+                // Kullanıcı oturum açmamışsa giriş sayfasına yönlendir
+                setIsAdmin(false);
+                navigate("/AdminLogin");
+            }
+            setLoading(false);
+        });
+
+        // Temizleme fonksiyonu: component unmount olduğunda dinleyiciyi durdurur
+        return () => unsubscribe();
     }, [navigate]);
 
     const fetchPendingUsers = async () => {
         setLoading(true);
         try {
+            // Sadece 'pending' durumundaki kullanıcıları çekmek için Firestore sorgusu
             const q = query(collection(FIRESTORE_DB, "users"), where("status", "==", "pending"));
             const querySnapshot = await getDocs(q);
             
@@ -59,10 +75,14 @@ const Admin = () => {
         navigate("/UserVerification");
     }
 
-    const handleLogout = () => {
-        // Çıkış yapıldığında localStorage'daki yetkiyi kaldır
-        localStorage.removeItem('isAdmin');
-        navigate("/AdminLogin");
+    const handleLogout = async () => {
+        // Firebase Authentication üzerinden güvenli çıkış yap
+        try {
+            await FIREBASE_AUTH.signOut();
+            navigate("/AdminLogin");
+        } catch (error) {
+            console.error("Çıkış yaparken hata oluştu:", error);
+        }
     }
 
     const verificationUser = async (userId, userEmail) => {
@@ -108,6 +128,15 @@ const Admin = () => {
         }
     };
 
+    if (loading) {
+        return <div className="loading-container">Loading...</div>;
+    }
+
+    // Admin yetkisi yoksa, bu kısım gösterilmez
+    if (!isAdmin) {
+        return null;
+    }
+
     return (
         <div className="container text-center admin-background">
             <h2 className='adminh2'>Seçim Yap</h2>
@@ -115,11 +144,11 @@ const Admin = () => {
 
             <Container className='container2'>
                 <Row>
-                    <Col>     
+                    <Col>     
                         <div>
                             <Button variant="success" className='admin-buttons' onClick={NavigateVerification}>Kullanıcı Onaylama</Button>
                             <Button variant="success" className='admin-buttons' onClick={NavigateFiles}>Dosya Yükleme</Button>
-                            <Button variant="danger" className='admin-buttons' onClick={handleLogout}>Çıkış Yap</Button>             
+                            <Button variant="danger" className='admin-buttons' onClick={handleLogout}>Çıkış Yap</Button>             
                         </div>
                     </Col>
                 </Row>

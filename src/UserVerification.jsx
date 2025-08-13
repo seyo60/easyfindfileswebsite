@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
-import { sendEmailVerification } from 'firebase/auth';
+import { collection, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth'; // onAuthStateChanged'i ekledik
 import emailjs from 'emailjs-com';
 import SignUp from './SignUp.jsx';
 import './css/UserVerification.css';
@@ -14,23 +14,39 @@ const UserVerification = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
+    const [isAdmin, setIsAdmin] = useState(false); // isAdmin state'i eklendi
 
-    // *** Korumalı rota mekanizması burasıdır ***
     useEffect(() => {
-        // localStorage'daki 'isAdmin' durumunu kontrol et
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, async (user) => {
+            if (user) {
+                // Kullanıcı oturum açmışsa, Firestore'dan admin durumunu kontrol et
+                const userDocRef = doc(FIRESTORE_DB, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
 
-        // Eğer admin yetkisi yoksa, giriş sayfasına yönlendir
-        if (!isAdmin) {
-            navigate("/AdminLogin");
-        } else {
-            // Admin yetkisi varsa, onay bekleyen kullanıcıları getir
-            fetchPendingUsers();
-        }
-    }, [navigate]); // navigate bağımlılığı ile çalışması için eklenir
+                if (userDocSnap.exists() && userDocSnap.data().isAdmin) {
+                    setIsAdmin(true);
+                    fetchPendingUsers();
+                } else {
+                    // Kullanıcı admin değilse giriş sayfasına yönlendir
+                    setIsAdmin(false);
+                    navigate("/AdminLogin");
+                }
+            } else {
+                // Kullanıcı oturum açmamışsa giriş sayfasına yönlendir
+                setIsAdmin(false);
+                navigate("/AdminLogin");
+            }
+            setLoading(false);
+        });
+
+        // Temizleme fonksiyonu: component unmount olduğunda dinleyiciyi durdurur
+        return () => unsubscribe();
+    }, [navigate]);
 
     const fetchPendingUsers = async () => {
+        setLoading(true);
         try {
+            // Sadece 'pending' durumundaki kullanıcıları çekmek için Firestore sorgusu
             const q = query(collection(FIRESTORE_DB, "users"), where("status", "==", "pending"));
             const querySnapshot = await getDocs(q);
             
@@ -81,11 +97,9 @@ const UserVerification = () => {
             
             if (error.text) {
                 setMessage(`EmailJS Hatası: ${error.text}`);
-            } 
-            else if (error.message) {
+            } else if (error.message) {
                 setMessage(`Firestore Hatası: ${error.message}`);
-            }
-            else {
+            } else {
                 setMessage(`Beklenmeyen Hata: ${JSON.stringify(error)}`);
             }
         } finally {
@@ -93,8 +107,17 @@ const UserVerification = () => {
         }
     };
 
-    const NavigateFiles = () =>{
+    const NavigateFiles = () => {
         navigate('/Admin');
+    }
+
+    if (loading) {
+        return <div className="loading-container">Yükleniyor...</div>;
+    }
+
+    // Admin yetkisi yoksa, bu kısım gösterilmez
+    if (!isAdmin) {
+        return null;
     }
 
     return (

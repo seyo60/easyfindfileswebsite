@@ -108,7 +108,7 @@ const extractKeywordsFromQuery = async (query) => {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer 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",
+        "Authorization": "Bearer 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",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({

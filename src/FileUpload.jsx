@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom'; // navigate hook'unu ekle
+import { useNavigate } from 'react-router-dom';
 import { createClient } from "@supabase/supabase-js";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
+import { onAuthStateChanged } from 'firebase/auth'; 
+import { doc, getDoc } from 'firebase/firestore'; 
+import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase'; 
+
 import './css/FileUpload.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -12,19 +16,33 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 const FileUpload = () => {
-    const navigate = useNavigate(); // navigate hook'unu kullanıma al
+    const navigate = useNavigate();
+    const [isAdmin, setIsAdmin] = useState(false); 
+    const [loading, setLoading] = useState(true);
 
-    // *** Korumalı rota mekanizması burasıdır ***
+    // --- Güvenli Rota Kontrolü ---
     useEffect(() => {
-        // localStorage'daki 'isAdmin' durumunu kontrol et
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, async (user) => {
+            if (user) {
+                const userDocRef = doc(FIRESTORE_DB, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
 
-        // Eğer admin yetkisi yoksa, giriş sayfasına yönlendir
-        if (!isAdmin) {
-            navigate("/AdminLogin");
-        }
-    }, [navigate]); // navigate bağımlılığı ile çalışması için eklenir
+                if (userDocSnap.exists() && userDocSnap.data().isAdmin) {
+                    setIsAdmin(true);
+                } else {
+                    setIsAdmin(false);
+                    navigate("/AdminLogin");
+                }
+            } else {
+                setIsAdmin(false);
+                navigate("/AdminLogin");
+            }
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, [navigate]);
 
+    // Supabase Konfigürasyonu
     const SUPABASE_CONFIG = {
         url: "https://ggaefqvwehljoqtgnzrx.supabase.co",
         key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnYWVmcXZ3ZWhsam9xdGduenJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4NTUwODIsImV4cCI6MjA2OTQzMTA4Mn0.t_EPI2kUwxjY188Jh9sfFHITEwqPCj_eaAGpq_O72_w"
@@ -44,21 +62,13 @@ const FileUpload = () => {
 
     // Desteklenen tüm dosya uzantıları
     const supportedExtensions = [
-        // Web Geliştirme
         '.html', '.htm', '.css', '.js', '.ts', '.jsx', '.tsx',
-        // Python
         '.py', '.ipynb', '.pyc',
-        // Backend
         '.php', '.java', '.go',
-        // Yapılandırma
         '.json', '.yaml', '.yml', '.toml', '.env',
-        // Diğer
         '.md', '.sh', '.bat', '.c', '.cpp', '.cc', '.cs', '.kt', '.swift', '.sql',
-        // Orijinal desteklenenler
         '.txt', '.pdf', '.doc', '.docx', '.xls', '.xlsx',
-        // Orijinal desteklenenler
         '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp',
-        // 3D model dosyaları
         '.blend', '.mlt', '.obj', '.3ds'
     ];
 
@@ -114,7 +124,6 @@ const FileUpload = () => {
     };
 
     const extractKeywordsFromFilename = (filename) => {
-        // Örnek: "proje-taslak-2024.png" → ["proje", "taslak", "2024"]
         return filename
             .replace(/\.png$/i, '') 
             .split(/[_\-\s]+/) 
@@ -136,7 +145,6 @@ const FileUpload = () => {
                 return keywordsFromName.join(' ');
             }
 
-            // Diğer dosya türleri için orijinal işlemler
             if (file.type === "application/pdf" || extension === 'pdf') {
                 return await extractTextFromPdf(file);
             } else if (
@@ -173,17 +181,18 @@ const FileUpload = () => {
     };
 
 
-    // Gelişmiş anahtar kelime çıkarma fonksiyonu
     const analyzeText = async (text) => {
         try {
-            const healthCheck = await fetch('http://localhost:5001/healthcheck');
+            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+
+            const healthCheck = await fetch(`${backendUrl}/healthcheck`);
             if (!healthCheck.ok) {
-                throw new Error('Backend hizmeti çalışmıyor');
+                throw new Error('Backend hizmeti çalışmıyor veya ulaşılamıyor');
             }
 
-            const response = await fetch('http://localhost:5001/extract-keywords', {
+            const response = await fetch(`${backendUrl}/extract-keywords`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
@@ -409,6 +418,15 @@ const FileUpload = () => {
             setShowKeywords(false);
         }
     };
+
+    // --- Render Metodu ---
+    if (loading) {
+        return <div className="loading-container">Yükleniyor...</div>;
+    }
+
+    if (!isAdmin) {
+        return null;
+    }
 
     return (
         <div className="page-wrapper">

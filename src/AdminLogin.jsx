@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Firebase Authentication metodunu ekledik
+import { FIREBASE_AUTH } from './firebase'; // Firebase auth objesini ekledik
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/AdminLogin.css';
 
 const AdminLogin = () => {
     const navigate = useNavigate();
-    const [userName, setUserName] = useState('');
+    const [email, setEmail] = useState(''); // userName yerine email kullanıyoruz
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -16,19 +18,22 @@ const AdminLogin = () => {
         setError('');
 
         try {
-            // Giriş bilgilerini kontrol et
-            if (userName === "admin" && password === "admin22fb1") {
-                // LocalStorage'a admin durumunu kaydet
-                localStorage.setItem('isAdmin', 'true');
-                
-                // Yönlendirme yap
-                navigate("/Admin");
-            } else {
-                setError('Hatalı kullanıcı adı veya şifre!');
-            }
+            // Firebase Authentication ile giriş yap
+            const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+            const user = userCredential.user;
+
+            // Giriş başarılıysa, admin yetki kontrolü Admin.jsx'te yapılacak
+            // Bu yüzden doğrudan admin paneline yönlendiriyoruz.
+            navigate("/Admin");
+
         } catch (error) {
             console.error('Giriş hatası:', error);
-            setError('Bir hata oluştu. Lütfen tekrar deneyin.');
+            // Firebase hata kodlarını kullanarak kullanıcıya özel hata mesajı göster
+            if (error.code === 'auth/invalid-email' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                setError('Geçersiz e-posta veya şifre.');
+            } else {
+                setError('Bir hata oluştu. Lütfen tekrar deneyin.');
+            }
         } finally {
             setLoading(false);
         }
@@ -43,11 +48,11 @@ const AdminLogin = () => {
             <form onSubmit={signIn}>
                 <div className="mb-3">
                     <input
-                        type="text"
-                        value={userName}
+                        type="email"
+                        value={email}
                         className="form-control input"
-                        placeholder="Kullanıcı Adı"
-                        onChange={(e) => setUserName(e.target.value)}
+                        placeholder="E-posta Adresi"
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                     />
                 </div>

@@ -50,12 +50,12 @@
     "xlsx": "^0.18.5",
     "yamljs": "^0.3.0"
   },
-  "scripts": {
-    "start": "set NODE_OPTIONS=--max-old-space-size=4096 && react-scripts start",
-    "build": "set NODE_OPTIONS=--max-old-space-size=4096 && react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
+"scripts": {
+  "start": "set NODE_OPTIONS=--max-old-space-size=4096 && set \"REACT_APP_BACKEND_URL=http://localhost:5001\" && react-scripts start",
+  "build": "set NODE_OPTIONS=--max-old-space-size=4096 && react-scripts build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject"
+},
   "eslintConfig": {
     "extends": [
       "react-app",
