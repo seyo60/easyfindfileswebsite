@@ -3,12 +3,20 @@
   "builds": [
     {
       "src": "api/app.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.9"
+      }
     },
     {
       "src": "package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "build" }
+      "config": {
+        "distDir": "build",
+        "installCommand": "npm install --legacy-peer-deps",
+        "buildCommand": "CI=false npm run build"
+      }
     }
   ],
   "routes": [
@@ -17,8 +25,15 @@
       "dest": "/api/app.py"
     },
     {
+      "src": "/static/(.*)",
+      "dest": "/build/static/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "build/$1"
+      "dest": "/build/$1",
+      "headers": {
+        "Cache-Control": "s-maxage=3600, stale-while-revalidate"
+      }
     }
   ]
 }
