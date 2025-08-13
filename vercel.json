@@ -5,8 +5,7 @@
       "src": "api/app.py",
       "use": "@vercel/python",
       "config": {
-        "maxLambdaSize": "15mb",
-        "runtime": "python3.9"
+        "maxLambdaSize": "15mb"
       }
     },
     {
@@ -15,7 +14,7 @@
       "config": {
         "distDir": "build",
         "installCommand": "npm install --legacy-peer-deps",
-        "buildCommand": "CI=false npm run build"
+        "buildCommand": "npm run build"
       }
     }
   ],
@@ -25,15 +24,8 @@
       "dest": "/api/app.py"
     },
     {
-      "src": "/static/(.*)",
-      "dest": "/build/static/$1"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/build/$1",
-      "headers": {
-        "Cache-Control": "s-maxage=3600, stale-while-revalidate"
-      }
+      "dest": "/build/$1"
     }
   ]
 }
