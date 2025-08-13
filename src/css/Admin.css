@@ -1,17 +1,76 @@
-.admin-buttons{
-  margin: 20px;
+/* Arka plan ve genel düzen */
+.admin-background {
+  background-color: #198754;
+  min-height: 50vh;
+  padding-top: 60px;
+  padding-bottom: 40px;
 }
 
-.admin-background{
-  background-color: #198754
+/* Başlık */
+.adminh2 {
+  color: #ffffff;
+  margin-bottom: 30px;
+  font-weight: 600;
+  font-size: 28px;
 }
 
-.container2{
-  background-color: rgb(255, 255, 255);
+
+/* Butonlar için alan */
+.container2 {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.container .adminh2 {
+/* Butonlar */
+.admin-buttons {
+  width: 220px;
+  margin: 15px 10px;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+/* Başarılı buton hover */
+.admin-buttons.btn-success:hover {
+  background-color: #1b5e20;
   color: white;
-  margin-bottom: 1.5rem;
-  font-size: 2rem;
+}
+
+/* Çıkış butonu hover */
+.admin-buttons.btn-danger:hover {
+  background-color: #c62828;
+  color: white;
+}
+
+/* Uyarı / bilgi mesajları */
+.message {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+  padding: 12px 18px;
+  border-radius: 8px;
+  margin: 0 auto 20px auto;
+  width: fit-content;
+  font-weight: 500;
+  max-width: 80%;
+}
+
+/* Responsive düzen */
+@media screen and (max-width: 576px) {
+  .admin-buttons {
+    width: 100%;
+    margin: 10px 0;
+  }
+
+  .container2 {
+    padding: 20px;
+  }
+
+  .adminh2 {
+    font-size: 22px;
+  }
 }

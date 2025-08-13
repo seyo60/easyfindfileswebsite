@@ -1,57 +1,50 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { FIREBASE_AUTH } from './firebase';
+import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import './css/SignIn.css';
+import './css/SignInHome.css';
+import { useAuth } from './context/AuthContext.js'; 
+import { doc, getDoc } from 'firebase/firestore';   
 
-const SignIn = () => {
-  const navigate = useNavigate();
+
+const SignInHome = () => {
   const { setCurrentUser, setIsAdmin } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const signIn = async () => {
     setLoading(true);
-    setError('');
     try {
       const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
       const user = userCredential.user;
       
-      // E-posta doğrulaması kontrolü
-      if (!user.emailVerified) {
-        setError('Lütfen e-postanızı doğrulayın');
-        await FIREBASE_AUTH.signOut();
-        return;
-      }
-
       // AuthContext'i güncelle
       setCurrentUser(user);
       
-      // Admin kontrolü (isteğe bağlı)
-      // Bu kısım Firestore'dan admin bilgisi çekilecekse:
-      // setIsAdmin(true/false) şeklinde güncellenmeli
-      
-      // Yönlendirme
+      // Firestore'dan admin bilgisini çek
+      const userDoc = await getDoc(doc(FIRESTORE_DB, "users", user.uid));
+      if (userDoc.exists()) {
+        setIsAdmin(userDoc.data().isAdmin || false);
+      }
+
       navigate("/Home");
       
     } catch (error) {
       console.error('Giriş hatası:', error);
-      setError(error.message.replace('Firebase: ', ''));
+      alert(error.message.replace('Firebase: ', ''));
     } finally {
       setLoading(false);
     }
-  };
 
-  const SignUpNavigate = () => navigate('/SignUp');
-  const ForgetPasswordNavigate = () => navigate('/ForgetPassword');
+ const ForgetPasswordNavigate = () =>{
+    navigate('/ForgetPassword')
+  }
 
   return (
-    <div className="container">
-      {error && <div className="error-message">{error}</div>}
-      
+    <div className="container sign_in_home">
       <input
         type="email"
         value={email}
@@ -75,15 +68,12 @@ const SignIn = () => {
         </button>
       )}
 
-      <button className="forget-password" onClick={ForgetPasswordNavigate}>
-        Şifremi Unuttum
-      </button>
-
-      <button className="sign-up" onClick={SignUpNavigate}>
-        Kayıt Ol
-      </button>
+      
+        <button className="forget-password" onClick={ForgetPasswordNavigate}>
+          Şifremi Unuttum
+        </button>
     </div>
   );
 };
-
-export default SignIn;
+}
+export default SignInHome;

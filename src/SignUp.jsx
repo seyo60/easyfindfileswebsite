@@ -79,7 +79,7 @@ const SignUp = () => {
         </div>
 
         <div>
-          <label>Soyadı</label>
+          <label>Soyad</label>
           <input
             type='text'
             value={surname}

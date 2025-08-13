@@ -1,10 +1,5 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase';
 import { useNavigate } from 'react-router-dom';
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/AdminLogin.css';
 
@@ -18,7 +13,7 @@ const AdminLogin = () => {
   const signIn = async () => {
     setLoading(true);
     try {
-      if (userName == "admin" && password == "admin22fb1") {
+      if (userName === "admin" && password === "admin22fb1") {
         alert("Giriş başarılı, yönlendiriliyorsunuz.");
         navigate("/Admin");
       }

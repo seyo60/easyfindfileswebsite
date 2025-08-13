@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import yake
 import torch
 import logging
+from keybert import KeyBERT
+from sentence_transformers import SentenceTransformer
+import nltk
 
 app = Flask(__name__)
 CORS(app)
@@ -10,14 +12,17 @@ CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-try:
-    logger.info(f"Cihaz: {'GPU' if torch.cuda.is_available() else 'CPU'}")
-    # Burada top'u yüksek tutuyoruz, çünkü parçalardan fazla çıkarıp sonra kırpacağız
-    YAKE_MODEL = yake.KeywordExtractor(lan="tr", n=2, dedupLim=0.3, top=10)
-    logger.info("YAKE modeli yüklendi")
-except Exception as e:
-    logger.error(f"YAKE modeli yüklenemedi: {e}")
-    YAKE_MODEL = None
+# Türkçe stopwords için nltk stopwords yükle (ilk kez çalıştırırken)
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+turkish_stopwords = stopwords.words('turkish')
+
+# Load the multilingual model
+model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
+kw_model = KeyBERT(model=model)
+
+logger.info(f"Device: {'GPU' if torch.cuda.is_available() else 'CPU'}")
+logger.info("KeyBERT with multilingual model ready for keyword extraction")
 
 def split_text(text, max_words=500):
     words = text.split()
@@ -27,52 +32,47 @@ def split_text(text, max_words=500):
 @app.route('/healthcheck', methods=['GET'])
 def healthcheck():
     return jsonify({
-        "status": "healthy" if YAKE_MODEL else "degraded",
-        "message": "Backend çalışıyor" if YAKE_MODEL else "YAKE modeli yüklenemedi",
-        "device": "GPU" if torch.cuda.is_available() else "CPU"
+        "status": "healthy",
+        "message": "Backend running (KeyBERT with multilingual model)",
+        "device": "CPU (forced)"
     })
 
 @app.route('/extract-keywords', methods=['POST'])
 def extract_keywords():
     try:
         if not request.is_json:
-            return jsonify({"error": "Request JSON olmalı"}), 400
+            return jsonify({"error": "Request must be JSON"}), 400
         data = request.get_json()
         text = data.get('text', '')[:10000]
 
-        if not text or len(text.split()) < 3:
-            return jsonify({"error": "Metin en az 3 kelime olmalı"}), 400
-
-        if not YAKE_MODEL:
-            return jsonify({"error": "YAKE modeli yüklenemedi"}), 500
+        if not text or len(text.split()) < 1:
+            return jsonify({"error": "Text must be at least 3 words"}), 400
 
         all_keywords = []
+
         for chunk in split_text(text, max_words=500):
-            kws = YAKE_MODEL.extract_keywords(chunk)
-            all_keywords.extend(kws)
+            keywords = kw_model.extract_keywords(
+                chunk,
+                keyphrase_ngram_range=(1, 1),  # 1-3 kelimelik ifadeler
+                stop_words=turkish_stopwords,  # Türkçe durak kelimeler
+                top_n=20,
+                highlight=False
+            )
 
-        # Aynı anahtar kelimeleri küçük harfe çevirip skor bazlı filtrele
-        filtered = {}
-        for kw, score in all_keywords:
-            kw_lower = kw.lower()
-            if kw_lower not in filtered or score < filtered[kw_lower]:
-                filtered[kw_lower] = score
+            # Yalnızca anahtar kelime stringlerini al (skorları atla)
+            chunk_keywords = [kw[0] for kw in keywords]
+            all_keywords.extend(chunk_keywords)
 
-        # Skora göre sırala
-        sorted_keywords = sorted(filtered.items(), key=lambda x: x[1])
-
-        # En iyi 50 anahtar kelimeyi al
-        top_keywords = sorted_keywords[:50]
-
-        keywords_list = [{"keyword": kw, "score": score} for kw, score in top_keywords]
+        # Tekrar edenleri kaldır, sıra korunsun
+        unique_keywords = list(dict.fromkeys(all_keywords))
 
         return jsonify({
-            "keywords": keywords_list,
+            "keywords": [{"keyword": kw} for kw in unique_keywords],
             "device": "GPU" if torch.cuda.is_available() else "CPU"
         })
 
     except Exception as e:
-        logger.error(f"Anahtar kelime çıkarma hatası: {e}", exc_info=True)
+        logger.error(f"Keyword extraction error: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
