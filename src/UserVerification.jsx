@@ -3,7 +3,6 @@ import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase';
 import { collection, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth'; // onAuthStateChanged'i ekledik
 import emailjs from '@emailjs/browser';
-import SignUp from './SignUp.jsx';
 import './css/UserVerification.css';
 import Button from 'react-bootstrap/Button';
 import { useNavigate } from 'react-router-dom';
@@ -83,7 +82,7 @@ const UserVerification = () => {
 
             if (emailResponse.status === 200) {
                 await updateDoc(doc(FIRESTORE_DB, "users", userId), {
-                    status: 'approved',
+                    status: 'approved', 
                     verificationCode: verificationCode,
                 });
 

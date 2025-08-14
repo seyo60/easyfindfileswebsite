@@ -4,7 +4,6 @@ import { collection, query, where, getDocs, updateDoc, doc, getDoc } from 'fireb
 import { onAuthStateChanged } from 'firebase/auth'; 
 import { useNavigate } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
-import SignUp from './SignUp.jsx';
 import './css/Admin.css';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -85,48 +84,6 @@ const Admin = () => {
         }
     }
 
-    const verificationUser = async (userId, userEmail) => {
-        try {
-            setLoading(true);
-            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-            const templateParams = {
-                to_email: userEmail,
-                verificationCode: verificationCode,
-            };
-
-            const emailResponse = await emailjs.send(
-                'service_1xtxpso', 
-                'template_euxr4qa',
-                templateParams,
-                '-7Ex3SjAKOjd_fA6n'
-            );
-
-            if (emailResponse.status === 200) {
-                await updateDoc(doc(FIRESTORE_DB, "users", userId), {
-                    status: 'approved',
-                    verificationCode: verificationCode,
-                });
-
-                setPendingUsers(pendingUsers.filter(user => user.id !== userId));
-                setMessage('Kullanıcı onaylandı ve doğrulama e-postası gönderildi');
-            } else {
-                throw new Error('E-posta gönderilemedi');
-            }
-        } catch (error) {
-            console.error("Onaylama hatası:", error);
-            
-            if (error.text) {
-                setMessage(`EmailJS Hatası: ${error.text}`);
-            } else if (error.message) {
-                setMessage(`Firestore Hatası: ${error.message}`);
-            } else {
-                setMessage(`Beklenmeyen Hata: ${JSON.stringify(error)}`);
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
 
     if (loading) {
         return <div className="loading-container">Loading...</div>;

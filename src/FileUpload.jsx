@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { createClient } from "@supabase/supabase-js";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
@@ -183,16 +183,13 @@ const FileUpload = () => {
 
     const analyzeText = async (text) => {
         try {
-            // .env'den URL al veya varsayılan olarak localhost:5000 kullan
-            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
-            
-            // Healthcheck endpointini test et
+            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+
             const healthCheck = await fetch(`${backendUrl}/healthcheck`);
             if (!healthCheck.ok) {
                 throw new Error('Backend hizmeti çalışmıyor veya ulaşılamıyor');
             }
 
-            // Anahtar kelime çıkarma isteği
             const response = await fetch(`${backendUrl}/extract-keywords`, {
                 method: 'POST',
                 headers: {
@@ -201,7 +198,6 @@ const FileUpload = () => {
                 },
                 body: JSON.stringify({ text: text.slice(0, 5000) })
             });
-
 
             if (!response.ok) {
                 const errorText = await response.text();

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Firebase Authentication metodunu ekledik
-import { FIREBASE_AUTH } from './firebase'; // Firebase auth objesini ekledik
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { FIREBASE_AUTH } from './firebase';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/AdminLogin.css';
 
 const AdminLogin = () => {
     const navigate = useNavigate();
-    const [email, setEmail] = useState(''); // userName yerine email kullanıyoruz
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -18,17 +18,14 @@ const AdminLogin = () => {
         setError('');
 
         try {
-            // Firebase Authentication ile giriş yap
-            const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
-            const user = userCredential.user;
-
-            // Giriş başarılıysa, admin yetki kontrolü Admin.jsx'te yapılacak
-            // Bu yüzden doğrudan admin paneline yönlendiriyoruz.
+            // Kullanıcı giriş yaptığında user değişkenini kullanmıyoruz, bu yüzden doğrudan await ediyoruz
+            await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+            
+            // Giriş başarılıysa admin paneline yönlendir
             navigate("/Admin");
 
         } catch (error) {
             console.error('Giriş hatası:', error);
-            // Firebase hata kodlarını kullanarak kullanıcıya özel hata mesajı göster
             if (error.code === 'auth/invalid-email' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
                 setError('Geçersiz e-posta veya şifre.');
             } else {
