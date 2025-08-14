@@ -51,14 +51,11 @@ const FileUpload = () => {
     const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
     const [files, setFiles] = useState([]);
     const [departmentValue, setDepartmentValue] = useState(null);
-    const [keywords, setKeywords] = useState([]);
     const [uploadStatus, setUploadStatus] = useState({
         isUploading: false,
         progress: 0,
         step: ""
     });
-    const [showKeywords, setShowKeywords] = useState(false);
-    const [analysisDetails, setAnalysisDetails] = useState(null);
 
     // Desteklenen tüm dosya uzantıları
     const supportedExtensions = [
@@ -180,7 +177,6 @@ const FileUpload = () => {
         }
     };
 
-
     const analyzeText = async (text) => {
         try {
             const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
@@ -276,9 +272,11 @@ const FileUpload = () => {
             }
 
             setFiles(validFiles);
-            setKeywords([]);
-            setShowKeywords(false);
-            setAnalysisDetails(null);
+            setUploadStatus({
+                isUploading: false,
+                progress: 0,
+                step: ""
+            });
         }
     };
 
@@ -289,7 +287,6 @@ const FileUpload = () => {
 
         try {
             const fileAnalyses = await analyzeFiles(files);
-            console.log("Analiz sonuçları:", fileAnalyses);
 
             setUploadStatus(prev => ({ ...prev, progress: 30, step: "Dosyalar yükleniyor..." }));
 
@@ -306,13 +303,11 @@ const FileUpload = () => {
                     })
                     .filter(k => k && k.length > 0);
 
-                console.log(`Dosya ${i+1} için anahtar kelimeler:`, normalizedKeywords);
-
                 const timestamp = Date.now();
                 const fileName = `${timestamp}_${file.name}`;
                 const storagePath = `uploads/${fileName}`;
 
-                const { data: storageData, error: storageError } = await supabase.storage
+                const { data, error: storageError } = await supabase.storage
                     .from('files')
                     .upload(storagePath, file, {
                         cacheControl: '3600',
@@ -320,7 +315,6 @@ const FileUpload = () => {
                     });
 
                 if (storageError) {
-                    console.error(`Yükleme hatası (${file.name}):`, storageError);
                     throw new Error(`Dosya yükleme hatası (${file.name}): ${storageError.message}`);
                 }
 
@@ -355,18 +349,12 @@ const FileUpload = () => {
                         public_url: result.publicUrl,
                         file_size: result.file.size,
                         mime_type: result.file.type,
-                        analysis_summary: result.analysis.summary,
-                        entities: result.analysis.entities
+                        analysis_summary: result.analysis.summary
                     })
                     .select('id')
                     .single();
 
-                if (fileError) {
-                    console.error('Dosya kaydetme hatası:', fileError);
-                    throw fileError;
-                }
-
-                console.log(`Dosya ID: ${fileData.id} için anahtar kelimeler:`, result.normalizedKeywords);
+                if (fileError) throw fileError;
 
                 if (result.normalizedKeywords.length > 0) {
                     const keywordRecords = result.normalizedKeywords.map(k => ({
@@ -377,16 +365,11 @@ const FileUpload = () => {
                         original_name: result.file.name
                     }));
 
-                    console.log('Eklenen anahtar kelimeler:', keywordRecords);
-
                     const { error: keywordError } = await supabase
                         .from('keywords')
                         .insert(keywordRecords);
 
-                    if (keywordError) {
-                        console.error('Anahtar kelime ekleme hatası:', keywordError);
-                        throw keywordError;
-                    }
+                    if (keywordError) throw keywordError;
                 }
 
                 return fileData;
@@ -394,19 +377,15 @@ const FileUpload = () => {
 
             await Promise.all(dbOperations);
 
-            if (fileAnalyses.length > 0) {
-                setKeywords(fileAnalyses[0].keywords);
-                setAnalysisDetails(fileAnalyses[0].details);
-                setShowKeywords(true);
-            }
-
             setUploadStatus({
                 isUploading: false,
                 progress: 100,
                 step: `${files.length} dosya başarıyla yüklendi! 🎉`
             });
 
-            console.log("Yükleme başarıyla tamamlandı");
+            // Yükleme sonrası formu temizle
+            setFiles([]);
+            setDepartmentValue(null);
 
         } catch (error) {
             console.error("Yükleme hatası:", error);
@@ -415,7 +394,6 @@ const FileUpload = () => {
                 progress: 0,
                 step: `Hata: ${error.message}`
             });
-            setShowKeywords(false);
         }
     };
 

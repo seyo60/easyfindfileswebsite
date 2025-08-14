@@ -1,27 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase';
-import { collection, query, where, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth'; 
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import emailjs from '@emailjs/browser';
 import './css/Admin.css';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 
-
 const Admin = () => {
     const navigate = useNavigate();
-    const [pendingUsers, setPendingUsers] = useState([]);
-    const [loading, setLoading] = useState(true); 
+    const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
+    const [pendingUsers, setPendingUsers] = useState([]); // Eksik state eklendi
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, async (user) => {
             if (user) {
-                // Kullanıcı oturum açmışsa, Firestore'dan admin durumunu kontrol et
                 const userDocRef = doc(FIRESTORE_DB, "users", user.uid);
                 const userDocSnap = await getDoc(userDocRef);
 
@@ -29,26 +26,22 @@ const Admin = () => {
                     setIsAdmin(true);
                     fetchPendingUsers();
                 } else {
-                    // Kullanıcı admin değilse giriş sayfasına yönlendir
                     setIsAdmin(false);
                     navigate("/AdminLogin");
                 }
             } else {
-                // Kullanıcı oturum açmamışsa giriş sayfasına yönlendir
                 setIsAdmin(false);
                 navigate("/AdminLogin");
             }
             setLoading(false);
         });
 
-        // Temizleme fonksiyonu: component unmount olduğunda dinleyiciyi durdurur
         return () => unsubscribe();
     }, [navigate]);
 
     const fetchPendingUsers = async () => {
         setLoading(true);
         try {
-            // Sadece 'pending' durumundaki kullanıcıları çekmek için Firestore sorgusu
             const q = query(collection(FIRESTORE_DB, "users"), where("status", "==", "pending"));
             const querySnapshot = await getDocs(q);
             
@@ -75,7 +68,6 @@ const Admin = () => {
     }
 
     const handleLogout = async () => {
-        // Firebase Authentication üzerinden güvenli çıkış yap
         try {
             await FIREBASE_AUTH.signOut();
             navigate("/AdminLogin");
@@ -84,12 +76,10 @@ const Admin = () => {
         }
     }
 
-
     if (loading) {
         return <div className="loading-container">Loading...</div>;
     }
 
-    // Admin yetkisi yoksa, bu kısım gösterilmez
     if (!isAdmin) {
         return null;
     }

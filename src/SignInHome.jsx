@@ -9,7 +9,7 @@ const SignIn = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationCode] = useState(''); // set fonksiyonunu kaldırın
   const [loading, setLoading] = useState(false);
 
   const signIn = async () => {
