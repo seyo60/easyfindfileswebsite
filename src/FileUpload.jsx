@@ -307,17 +307,16 @@ const FileUpload = () => {
                 const fileName = `${timestamp}_${file.name}`;
                 const storagePath = `uploads/${fileName}`;
 
-                const { data, error: storageError } = await supabase.storage
+                const { error: storageError } = await supabase.storage
                     .from('files')
                     .upload(storagePath, file, {
                         cacheControl: '3600',
                         upsert: false
                     });
-
+                    
                 if (storageError) {
                     throw new Error(`Dosya yükleme hatası (${file.name}): ${storageError.message}`);
                 }
-
                 const { data: publicUrlData } = supabase.storage
                     .from('files')
                     .getPublicUrl(storagePath);
