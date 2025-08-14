@@ -10,7 +10,7 @@ import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase';
 
 import './css/FileUpload.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Dropdown from 'react-bootstrap/Dropdown';
+import { Dropdown } from 'react-bootstrap';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
