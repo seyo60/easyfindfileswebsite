@@ -7,7 +7,6 @@ import * as XLSX from "xlsx";
 import { onAuthStateChanged } from 'firebase/auth'; 
 import { doc, getDoc } from 'firebase/firestore'; 
 import { FIREBASE_AUTH, FIRESTORE_DB } from './firebase'; 
-
 import './css/FileUpload.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Dropdown } from 'react-bootstrap';
@@ -19,6 +18,38 @@ const FileUpload = () => {
     const navigate = useNavigate();
     const [isAdmin, setIsAdmin] = useState(false); 
     const [loading, setLoading] = useState(true);
+    const [socket, setSocket] = useState(null); // WebSocket state'i eklendi
+    const [isWsConnected, setIsWsConnected] = useState(false);
+
+
+    useEffect(() => {
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+        const wsUrl = backendUrl.replace('http', 'ws');
+        
+        const newSocket = new WebSocket(wsUrl);
+
+        newSocket.onopen = () => {
+            console.log('WebSocket bağlantısı kuruldu');
+            setIsWsConnected(true);
+            setSocket(newSocket);
+        };
+
+        newSocket.onclose = () => {
+            console.log('WebSocket bağlantısı kapatıldı');
+            setIsWsConnected(false);
+        };
+
+        newSocket.onerror = (error) => {
+            console.error('WebSocket hatası:', error);
+            setIsWsConnected(false);
+        };
+
+        return () => {
+            if (newSocket.readyState === WebSocket.OPEN) {
+                newSocket.close();
+            }
+        };
+    }, []);
 
     // --- Güvenli Rota Kontrolü ---
     useEffect(() => {
@@ -179,18 +210,54 @@ const FileUpload = () => {
 
     const analyzeText = async (text) => {
         try {
-            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+            // WebSocket bağlantısı varsa ve açıksa kullan
+            if (isWsConnected && socket) {
+                return new Promise((resolve, reject) => {
+                    const requestId = Date.now().toString();
+                    
+                    const messageHandler = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            
+                            if (data.requestId === requestId) {
+                                if (data.error) {
+                                    reject(new Error(data.error));
+                                } else if (data.keywords) {
+                                    resolve({
+                                        keywords: data.keywords,
+                                        details: null,
+                                        source: 'websocket'
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            reject(e);
+                        }
+                    };
 
-            const healthCheck = await fetch(`${backendUrl}/healthcheck`);
-            if (!healthCheck.ok) {
-                throw new Error('Backend hizmeti çalışmıyor veya ulaşılamıyor');
+                    socket.addEventListener('message', messageHandler);
+
+                    // İstek gönder
+                    socket.send(JSON.stringify({
+                        event: 'extract_keywords',
+                        requestId,
+                        text: text.slice(0, 5000)
+                    }));
+
+                    // Timeout ayarla
+                    setTimeout(() => {
+                        socket.removeEventListener('message', messageHandler);
+                        reject(new Error('WebSocket yanıt zaman aşımı'));
+                    }, 5000);
+                });
             }
-
+            
+            // Fallback HTTP isteği
+            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
             const response = await fetch(`${backendUrl}/extract-keywords`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({ text: text.slice(0, 5000) })
             });
@@ -201,20 +268,16 @@ const FileUpload = () => {
             }
 
             const data = await response.json();
-
-            if (!data.keywords) {
-                throw new Error("Anahtar kelime döndürülmedi");
-            }
-
             return {
                 keywords: data.keywords || [],
-                details: data.techniques || null
+                details: null,
+                source: 'http'
             };
         } catch (error) {
             throw error;
         }
     };
-
+    
     const analyzeFiles = async (files) => {
         try {
             const fileAnalyses = await Promise.all(files.map(async (file) => {
