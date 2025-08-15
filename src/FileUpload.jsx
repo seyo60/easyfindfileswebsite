@@ -179,7 +179,7 @@ const FileUpload = () => {
 
     const analyzeText = async (text) => {
         try {
-            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 
             const healthCheck = await fetch(`${backendUrl}/healthcheck`);
             if (!healthCheck.ok) {
